@@ -91,6 +91,39 @@ class ReadingRepository(
             }
         }
     }
+
+    suspend fun resetAndFetchUserReadings(userId: String): Result<Int> {
+        return withContext(Dispatchers.IO) {
+            try {
+                dao.deleteByUserId(userId)
+
+                val response = ReadingApiService.instance.getReadings(userId)
+                if (response.isSuccessful) {
+                    val fetchedReadings = response.body().orEmpty()
+                    fetchedReadings.forEach { reading ->
+                        dao.upsert(reading.toEntity())
+                    }
+
+                    activityDao.insert(
+                        ActivityLogEntity(
+                            id = UUID.randomUUID().toString(),
+                            timestampMs = System.currentTimeMillis(),
+                            userId = userId,
+                            userName = userId,
+                            type = "READINGS_RESET",
+                            message = "Reset and fetched ${fetchedReadings.size} readings for $userId"
+                        )
+                    )
+
+                    Result.success(fetchedReadings.size)
+                } else {
+                    Result.failure(Exception("Server Error ${response.code()}: ${response.message()}"))
+                }
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+    }
 }
 
 private fun ReadingEntity.toModel(): Reading = Reading(

@@ -7,6 +7,7 @@ import com.enos.enospte.data.datastore.UserPrefsStorage
 import com.enos.enospte.data.db.DatabaseProvider
 import com.enos.enospte.data.db.ActivityLogEntity
 import com.enos.enospte.data.model.ActivityEventType
+import com.enos.enospte.data.repository.ReadingRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import java.util.UUID
@@ -14,9 +15,18 @@ import java.util.UUID
 class SettingsViewModel(app: Application) : AndroidViewModel(app) {
 
     private val prefs = UserPrefsStorage(app.applicationContext)
-    private val activityDao = DatabaseProvider.get(app).activityLogDao()
+    private val db by lazy { DatabaseProvider.get(app) }
+    private val activityDao by lazy { db.activityLogDao() }
+    private val readingRepo by lazy { ReadingRepository(db.readingDao(), db.activityLogDao()) }
 
     fun observePin(userId: String): Flow<String?> = prefs.observePin(userId)
+
+    fun resetUserReadings(userId: String, onResult: (Result<Int>) -> Unit) {
+        viewModelScope.launch {
+            val result = readingRepo.resetAndFetchUserReadings(userId)
+            onResult(result)
+        }
+    }
 
     fun setPin(userId: String, newPin: String) {
         viewModelScope.launch {

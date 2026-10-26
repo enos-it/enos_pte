@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -30,6 +31,7 @@ import com.enos.enospte.data.datastore.MeterRoutineDefinition
 import com.enos.enospte.data.source.UserCatalog
 import com.enos.enospte.viewmodel.MeterRoutineViewModel
 import com.enos.enospte.viewmodel.SettingsViewModel
+import kotlinx.coroutines.launch
 import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -52,7 +54,13 @@ fun SettingsScreen(
     var newRoutineName by rememberSaveable(showAddRoutineDialog) { mutableStateOf("") }
     var newRoutineError by rememberSaveable(showAddRoutineDialog) { mutableStateOf<String?>(null) }
 
+    var showResetDialog by remember { mutableStateOf(false) }
+    var isResetting by remember { mutableStateOf(false) }
+
     var routineToDelete by remember { mutableStateOf<MeterRoutineDefinition?>(null) }
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
     val vm: SettingsViewModel = viewModel()
     val routineVm: MeterRoutineViewModel = viewModel()
@@ -63,6 +71,7 @@ fun SettingsScreen(
     )
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Nastavitve") },
@@ -112,6 +121,13 @@ fun SettingsScreen(
                 else
                     "Nastavi nov 4-mestni PIN",
                 onClick = { showPinDialog = true }
+            )
+
+            SettingsItem(
+                icon = { Icon(Icons.Default.Refresh, contentDescription = null) },
+                title = "Ponastavi podatke",
+                subtitle = "Izbriši lokalne vnose in jih prenesi s strežnika",
+                onClick = { showResetDialog = true }
             )
 
             if (showRoutineSettings) {
@@ -386,6 +402,52 @@ fun SettingsScreen(
                     newPin = ""
                     pinError = null
                 }) {
+                    Text("Prekliči")
+                }
+            }
+        )
+    }
+
+    if (showResetDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                if (!isResetting) showResetDialog = false
+            },
+            title = { Text("Ponastavi podatke") },
+            text = {
+                Text("Ali res želiš izbrisati vse lokalne vnose za uporabnika \"$enteredBy\" in jih ponovno prenesti s strežnika?")
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = !isResetting,
+                    onClick = {
+                        isResetting = true
+                        vm.resetUserReadings(userId) { result ->
+                            isResetting = false
+                            showResetDialog = false
+                            scope.launch {
+                                result.fold(
+                                    onSuccess = { count ->
+                                        snackbarHostState.showSnackbar("Ponastavljeno! Naloženih $count zapisov.")
+                                    },
+                                    onFailure = { error ->
+                                        snackbarHostState.showSnackbar(
+                                            "Napaka pri ponastavitvi: ${error.localizedMessage ?: error.message}"
+                                        )
+                                    }
+                                )
+                            }
+                        }
+                    }
+                ) {
+                    Text(if (isResetting) "Nalaganje..." else "Ponastavi")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    enabled = !isResetting,
+                    onClick = { showResetDialog = false }
+                ) {
                     Text("Prekliči")
                 }
             }

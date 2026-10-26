@@ -2,6 +2,7 @@ package com.enos.enospte.data.datastore
 
 import android.content.Context
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
@@ -27,11 +28,25 @@ class UserPrefsStorage(private val context: Context) {
         }
     }
 
+    private val lastSyncTimestampKey = longPreferencesKey("last_sync_timestamp_ms")
+
     suspend fun removePin(userId: String) {
         val key = pinKey(userId)
 
         context.userPrefsDataStore.edit { prefs ->
             prefs.remove(key)
+        }
+    }
+
+    fun observeLastSyncTimestamp(): Flow<Long> {
+        return context.userPrefsDataStore.data.map { prefs ->
+            prefs[lastSyncTimestampKey] ?: 0L
+        }
+    }
+
+    suspend fun setLastSyncTimestamp(timestampMs: Long) {
+        context.userPrefsDataStore.edit { prefs ->
+            prefs[lastSyncTimestampKey] = timestampMs
         }
     }
 }

@@ -6,7 +6,9 @@ import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
+import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.Path
 
 interface ReadingApiService {
 
@@ -14,6 +16,11 @@ interface ReadingApiService {
     suspend fun postReadings(
         @Body readings: List<Reading>
     ): Response<ResponseBody>
+
+    @GET("api/measures/{userId}")
+    suspend fun getReadings(
+        @Path("userId") userId: String
+    ): Response<List<Reading>>
 
     companion object {
         // Static Base URL & Port for the server

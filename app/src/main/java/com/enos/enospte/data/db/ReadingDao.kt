@@ -18,6 +18,9 @@ interface ReadingDao {
     @Query("DELETE FROM readings WHERE id = :id")
     suspend fun deleteById(id: String)
 
+    @Query("DELETE FROM readings WHERE enteredBy = :userId")
+    suspend fun deleteByUserId(userId: String)
+
     @Query("DELETE FROM readings")
     suspend fun deleteAll()
 }

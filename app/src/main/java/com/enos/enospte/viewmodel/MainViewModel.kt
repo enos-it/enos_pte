@@ -3,6 +3,7 @@ package com.enos.enospte.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.enos.enospte.data.datastore.UserPrefsStorage
 import com.enos.enospte.data.db.DatabaseProvider
 import com.enos.enospte.data.model.ActivityLog
 import com.enos.enospte.data.model.Reading
@@ -16,6 +17,8 @@ import kotlinx.coroutines.launch
 class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     private val db by lazy { DatabaseProvider.get(app) }
+
+    private val prefs by lazy { UserPrefsStorage(app) }
 
     private val readingRepo: ReadingRepository by lazy {
         ReadingRepository(db.readingDao(), db.activityLogDao())
@@ -31,6 +34,10 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     val activityLogs: StateFlow<List<ActivityLog>> =
         activityRepo.events.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
+    val lastSyncTimestamp: StateFlow<Long> =
+        prefs.observeLastSyncTimestamp()
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0L)
+
     fun addReading(reading: Reading) {
         viewModelScope.launch { readingRepo.addReading(reading) }
     }
@@ -45,6 +52,12 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     fun deleteAllReadings() {
         viewModelScope.launch { readingRepo.deleteAllReadings() }
+    }
+
+    fun updateLastSyncTimestamp(timestampMs: Long) {
+        viewModelScope.launch {
+            prefs.setLastSyncTimestamp(timestampMs)
+        }
     }
 
     suspend fun postReadingsToServer(readingsList: List<Reading>): Result<Unit> {

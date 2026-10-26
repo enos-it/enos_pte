@@ -56,6 +56,7 @@ fun MeterEntryScreen(
     vm: MainViewModel = viewModel()
 ) {
     val readings by vm.readings.collectAsState()
+    val lastSyncTimestamp by vm.lastSyncTimestamp.collectAsState()
 
     val context = LocalContext.current
     val keyboard = LocalSoftwareKeyboardController.current
@@ -242,22 +243,26 @@ fun MeterEntryScreen(
     fun sendAll() {
         if (isSending) return
 
-        if (readings.isEmpty()) {
+        val unsentReadings = readings.filter { it.timestampMs > lastSyncTimestamp }
+
+        if (unsentReadings.isEmpty()) {
             scope.launch {
-                snackbarHostState.showSnackbar("Ni vnosov za pošiljanje.")
+                snackbarHostState.showSnackbar("Ni novih vnosov za pošiljanje.")
             }
             return
         }
 
         isSending = true
         scope.launch {
-            val result = vm.postReadingsToServer(readings)
+            val maxTimestamp = unsentReadings.maxOf { it.timestampMs }
+            val result = vm.postReadingsToServer(unsentReadings)
             isSending = false
 
             result.fold(
                 onSuccess = {
+                    vm.updateLastSyncTimestamp(maxTimestamp)
                     snackbarHostState.showSnackbar(
-                        "Uspešno poslano na strežnik (${readings.size} zapisov)!"
+                        "Uspešno poslano na strežnik (${unsentReadings.size} novih zapisov)!"
                     )
                 },
                 onFailure = { error ->
