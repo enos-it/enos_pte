@@ -6,8 +6,11 @@ import com.enos.enospte.data.db.ReadingDao
 import com.enos.enospte.data.db.ReadingEntity
 import com.enos.enospte.data.model.ActivityEventType
 import com.enos.enospte.data.model.Reading
+import com.enos.enospte.data.network.ReadingApiService
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import java.util.UUID
 
 class ReadingRepository(
@@ -72,6 +75,21 @@ class ReadingRepository(
                 message = "Deleted ALL readings"
             )
         )
+    }
+
+    suspend fun postReadingsToServer(readings: List<Reading>): Result<Unit> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = ReadingApiService.instance.postReadings(readings)
+                if (response.isSuccessful) {
+                    Result.success(Unit)
+                } else {
+                    Result.failure(Exception("Server Error ${response.code()}: ${response.message()}"))
+                }
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
     }
 }
 

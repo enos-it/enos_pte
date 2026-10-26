@@ -232,11 +232,13 @@ fun MeterInputSection(
     valueText: String,
     valueError: String?,
     isSaving: Boolean,
+    isSending: Boolean,
     focusRequester: FocusRequester,
     onMeterExpandedChange: (Boolean) -> Unit,
     onMeterSelected: (Meter) -> Unit,
     onValueChange: (String) -> Unit,
     onSave: () -> Unit,
+    onSend: () -> Unit,
     isValueValid: Boolean
 ) {
     ExposedDropdownMenuBox(
@@ -343,6 +345,17 @@ fun MeterInputSection(
             } else {
                 "Shrani"
             }
+        )
+    }
+
+    Button(
+        onClick = onSend,
+        modifier = Modifier.fillMaxWidth(),
+        enabled = !isSending
+    ) {
+        Text(
+            if (isSending) "Pošiljam..."
+             else "Pošlji"
         )
     }
 }

@@ -46,4 +46,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     fun deleteAllReadings() {
         viewModelScope.launch { readingRepo.deleteAllReadings() }
     }
+
+    suspend fun postReadingsToServer(readingsList: List<Reading>): Result<Unit> {
+        return readingRepo.postReadingsToServer(readingsList)
+    }
 }

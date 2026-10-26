@@ -213,6 +213,7 @@ fun MeterEntryScreen(
     val valueFocusRequester = remember { FocusRequester() }
 
     var isSaving by remember { mutableStateOf(false) }
+    var isSending by remember {mutableStateOf(false)}
     var valueError by remember { mutableStateOf<String?>(null) }
     var valueText by remember { mutableStateOf("") }
     var valueDirty by remember { mutableStateOf(false) }
@@ -236,6 +237,36 @@ fun MeterEntryScreen(
             "dd.MM HH:mm",
             Locale.getDefault()
         )
+    }
+
+    fun sendAll() {
+        if (isSending) return
+
+        if (readings.isEmpty()) {
+            scope.launch {
+                snackbarHostState.showSnackbar("Ni vnosov za pošiljanje.")
+            }
+            return
+        }
+
+        isSending = true
+        scope.launch {
+            val result = vm.postReadingsToServer(readings)
+            isSending = false
+
+            result.fold(
+                onSuccess = {
+                    snackbarHostState.showSnackbar(
+                        "Uspešno poslano na strežnik (${readings.size} zapisov)!"
+                    )
+                },
+                onFailure = { error ->
+                    snackbarHostState.showSnackbar(
+                        "Napaka pri pošiljanju: ${error.localizedMessage ?: error.message ?: "Neznana napaka"}"
+                    )
+                }
+            )
+        }
     }
 
     fun saveCurrent() {
@@ -420,6 +451,7 @@ fun MeterEntryScreen(
                     valueText = valueText,
                     valueError = valueError,
                     isSaving = isSaving,
+                    isSending = isSending,
                     focusRequester = valueFocusRequester,
                     onMeterExpandedChange = {
                         meterExpanded = it
@@ -435,6 +467,7 @@ fun MeterEntryScreen(
                         valueError = null
                     },
                     onSave = ::saveCurrent,
+                    onSend = ::sendAll,
                     isValueValid = isValidForMeter(
                         selectedMeter,
                         valueText
