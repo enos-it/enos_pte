@@ -26,7 +26,7 @@ interface ReadingApiService {
         // Static Base URL & Port for the server
         // "http://10.0.2.2:8080/" maps to localhost:8080 on your host machine from Android Emulator
         // Change to your server's static IP/Port if needed (e.g., "http://192.168.1.100:8080/")
-        const val BASE_URL = "http://192.168.7.73:5000/"
+        const val BASE_URL = "http://192.168.7.16:5077/"
 
         val instance: ReadingApiService by lazy {
             Retrofit.Builder()

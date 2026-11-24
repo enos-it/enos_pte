@@ -12,6 +12,7 @@ object UserCatalog {
         UserProfile(id = "TOMAZ", displayName = "Tomaž", role = UserRole.USER),
         UserProfile(id = "JANEZ", displayName = "Janez", role = UserRole.USER),
         UserProfile(id = "DARKO", displayName = "Darko", role = UserRole.USER),
+        UserProfile(id = "VAJNAR", displayName = "Vajnar", role = UserRole.USER),
         UserProfile(id = "ADMIN", displayName = "Admin", role = UserRole.ADMIN)
     )
 
@@ -22,6 +23,7 @@ object UserCatalog {
         "TOMAZ" -> "4444"
         "JANEZ" -> "5555"
         "DARKO" -> "6666"
+        "VAJNAR" -> "7777"
         "ADMIN" -> "0000"
         else -> null
     }
