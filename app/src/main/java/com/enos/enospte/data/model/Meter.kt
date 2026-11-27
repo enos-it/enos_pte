@@ -128,7 +128,6 @@ enum class MeterName(val id: Int, val label: String) {
 }
 
 enum class MeterUnit(val id: Int, val label: String) {
-    EMPTY(0, ""),
     HOUR(1, "h"),
     CUBIC_METER(2, "m³"),
     KILOWATT_HOUR(3, "kWh"),
@@ -138,6 +137,8 @@ enum class MeterUnit(val id: Int, val label: String) {
     MEGAWATT_HOUR(7, "MWh"),
     NORMAL_CUBIC_METER(8, "Nm³"),
     CUBIC_METER_PER_HOUR(9, "m³/h"),
+    EMPTY(10, ""),
+
 }
 
 data class Meter(

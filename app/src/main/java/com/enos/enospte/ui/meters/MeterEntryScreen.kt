@@ -83,7 +83,7 @@ fun MeterEntryScreen(
     }
 
     val sites = remember(baseMeters) {
-        baseMeters.map { it.site }.distinct().sorted()
+        baseMeters.map { it.site.name }.distinct().sorted()
     }
 
     var selectedSite by remember {
@@ -97,7 +97,7 @@ fun MeterEntryScreen(
     ) {
         routines.filter { routine ->
             routine.meterIds.any { meterId ->
-                meterById[meterId]?.site == selectedSite
+                meterById[meterId]?.site?.name == selectedSite
             }
         }
     }
@@ -119,7 +119,7 @@ fun MeterEntryScreen(
     }
 
     val metersForSite = remember(baseMeters, selectedSite) {
-        baseMeters.filter { it.site == selectedSite }
+        baseMeters.filter { it.site.name == selectedSite }
     }
 
     val activeRoutineMeters = remember(activeRoutine, meterById) {
@@ -142,7 +142,7 @@ fun MeterEntryScreen(
         if (activeRoutine == null) {
             metersForSite
         } else {
-            routineMeters.filter { it.site == selectedSite }
+            routineMeters.filter { it.site.name == selectedSite }
         }
     }
 
@@ -203,7 +203,7 @@ fun MeterEntryScreen(
             false
         } else {
             activeRoutineMeters
-                .filter { it.site == selectedSite }
+                .filter { it.site.name == selectedSite }
                 .all { it.id in todaysMeterIds }
         }
     }

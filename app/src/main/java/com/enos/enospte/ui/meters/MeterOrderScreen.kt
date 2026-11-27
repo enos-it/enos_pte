@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.enos.enospte.data.datastore.MeterRoutineConfig
 import com.enos.enospte.data.model.Meter
+import com.enos.enospte.data.model.SubGroup
 import com.enos.enospte.ui.meters.components.ExpandableGroupRow
 import com.enos.enospte.ui.meters.components.ExpandableSubgroupRow
 import com.enos.enospte.ui.meters.components.MeterSearchField
@@ -58,7 +59,7 @@ fun MeterOrderScreen(
     }
 
     val sites = remember(meters) {
-        meters.map { it.site }.distinct().sorted()
+        meters.map { it.site.name }.distinct().sorted()
     }
 
     var selectedSite by remember {
@@ -90,7 +91,7 @@ fun MeterOrderScreen(
     }
 
     val metersForSite = remember(meters, selectedSite) {
-        meters.filter { it.site == selectedSite }
+        meters.filter { it.site.name == selectedSite }
     }
 
     val filteredMetersForSite = remember(metersForSite, searchText) {
@@ -100,18 +101,18 @@ fun MeterOrderScreen(
             metersForSite
         } else {
             metersForSite.filter { meter ->
-                meter.name.contains(query, ignoreCase = true) ||
+                meter.name.label.contains(query, ignoreCase = true) ||
                     meter.id.contains(query, ignoreCase = true) ||
-                    meter.group.contains(query, ignoreCase = true) ||
-                    meter.subgroup.contains(query, ignoreCase = true) ||
-                    meter.unit.contains(query, ignoreCase = true)
+                    meter.group.name.contains(query, ignoreCase = true) ||
+                    meter.subgroup.label.contains(query, ignoreCase = true) ||
+                    meter.unit.label.contains(query, ignoreCase = true)
             }
         }
     }
 
     val metersByGroup = remember(filteredMetersForSite) {
         filteredMetersForSite.groupBy {
-            it.group.ifBlank { "OSTALO" }
+            it.group.name
         }
     }
 
@@ -312,7 +313,7 @@ fun MeterOrderScreen(
 
                         if (groupExpanded) {
                             val directMeters = groupMeters.filter {
-                                it.subgroup.isBlank()
+                                it.subgroup == SubGroup.EMPTY
                             }
 
                             directMeters.forEach { meter ->
@@ -331,8 +332,8 @@ fun MeterOrderScreen(
                             }
 
                             val metersBySubgroup = groupMeters
-                                .filter { it.subgroup.isNotBlank() }
-                                .groupBy { it.subgroup }
+                                .filter { it.subgroup != SubGroup.EMPTY }
+                                .groupBy { it.subgroup.label }
 
                             metersBySubgroup.forEach {
                                     (subgroupName, subgroupMeters) ->

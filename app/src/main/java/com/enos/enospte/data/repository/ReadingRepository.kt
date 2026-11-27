@@ -5,8 +5,10 @@ import com.enos.enospte.data.db.ActivityLogEntity
 import com.enos.enospte.data.db.ReadingDao
 import com.enos.enospte.data.db.ReadingEntity
 import com.enos.enospte.data.model.ActivityEventType
+import com.enos.enospte.data.model.DatabaseReading
 import com.enos.enospte.data.model.Reading
 import com.enos.enospte.data.network.ReadingApiService
+import com.enos.enospte.data.source.MeterCatalog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -80,7 +82,8 @@ class ReadingRepository(
     suspend fun postReadingsToServer(readings: List<Reading>): Result<Unit> {
         return withContext(Dispatchers.IO) {
             try {
-                val response = ReadingApiService.instance.postReadings(readings)
+                val payload = readings.map { toDatabaseReading(it) }
+                val response = ReadingApiService.instance.postReadings(payload)
                 if (response.isSuccessful) {
                     Result.success(Unit)
                 } else {
@@ -100,9 +103,9 @@ class ReadingRepository(
                 val response = ReadingApiService.instance.getReadings(userId)
                 if (response.isSuccessful) {
                     val fetchedReadings = response.body().orEmpty()
-                    fetchedReadings.forEach { reading ->
-                        dao.upsert(reading.toEntity())
-                    }
+//                    fetchedReadings.forEach { reading ->
+//                        dao.upsert(reading.toEntity())
+//                    }
 
                     activityDao.insert(
                         ActivityLogEntity(
@@ -124,6 +127,12 @@ class ReadingRepository(
             }
         }
     }
+
+    companion object {
+        fun generateId(site: String, group: String, subgroup: String, name: String): String {
+            return "${site.lowercase()}_${group.lowercase()}_${subgroup.lowercase()}_${name.lowercase()}"
+        }
+    }
 }
 
 private fun ReadingEntity.toModel(): Reading = Reading(
@@ -140,4 +149,26 @@ private fun Reading.toEntity(): ReadingEntity = ReadingEntity(
     value = value,
     timestampMs = timestampMs,
     enteredBy = enteredBy
+)
+
+private fun toDatabaseReading(reading: Reading): DatabaseReading = DatabaseReading(
+    id = reading.id,
+    siteId = requireNotNull(MeterCatalog.getMeter(reading.meterId)) {
+        "Unknown meter ID: ${reading.meterId}"
+    }.site.id,
+    groupId = requireNotNull(MeterCatalog.getMeter(reading.meterId)) {
+        "Unknown meter ID: ${reading.meterId}"
+    }.group.id,
+    subGroupId = requireNotNull(MeterCatalog.getMeter(reading.meterId)) {
+        "Unknown meter ID: ${reading.meterId}"
+    }.subgroup.id,
+    unitId = requireNotNull(MeterCatalog.getMeter(reading.meterId)) {
+        "Unknown meter ID: ${reading.meterId}"
+    }.unit.id,
+    meterNameId = requireNotNull(MeterCatalog.getMeter(reading.meterId)) {
+        "Unknown meter ID: ${reading.meterId}"
+    }.name.id,
+    value = reading.value,
+    timestampMs = reading.timestampMs,
+    enteredBy = reading.enteredBy
 )

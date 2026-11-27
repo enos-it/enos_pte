@@ -30,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.enos.enospte.data.model.Meter
+import com.enos.enospte.data.model.SubGroup
 
 @Composable
 fun SiteSelector(
@@ -79,7 +80,7 @@ fun RoutineOrderRow(
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = meter.name,
+                    text = meter.name.label,
                     style = MaterialTheme.typography.titleMedium
                 )
 
@@ -260,13 +261,13 @@ fun MeterSelectionRow(
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = meter.name,
+                    text = meter.name.label,
                     style = MaterialTheme.typography.bodyLarge
                 )
 
-                if (meter.unit.isNotBlank()) {
+                if (meter.unit.label.isNotBlank()) {
                     Text(
-                        text = meter.unit,
+                        text = meter.unit.label,
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -391,8 +392,8 @@ private fun BulkSelectionActions(
 private fun meterCategoryPath(
     meter: Meter
 ): String {
-    return if (meter.subgroup.isNotBlank()) {
-        "${meter.site} • ${meter.group} • ${meter.subgroup}"
+    return if (meter.subgroup != SubGroup.EMPTY) {
+        "${meter.site} • ${meter.group} • ${meter.subgroup.label}"
     } else {
         "${meter.site} • ${meter.group}"
     }

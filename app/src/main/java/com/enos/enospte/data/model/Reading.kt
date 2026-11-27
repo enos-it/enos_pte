@@ -7,3 +7,17 @@ data class Reading(
     val timestampMs: Long,      // System.currentTimeMillis()
     val enteredBy: String       // npr. "Jure" ali userId
 )
+
+data class DatabaseReading(
+    val id: String,
+
+    val siteId: Int,
+    val groupId: Int,
+    val subGroupId: Int,
+    val unitId: Int,
+    val meterNameId: Int,
+
+    val value: Double,
+    val timestampMs: Long,
+    val enteredBy: String
+)

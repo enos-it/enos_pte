@@ -49,7 +49,7 @@ fun AdminHistoryScreen(
         listOf("Vsi") + (fromReadings + fromEvents).distinct().sorted()
     }
     val siteOptions = remember(meters) {
-        listOf("Vsi") + meters.map { it.site }.distinct().sorted()
+        listOf("Vsi") + meters.map { it.site.name }.distinct().sorted()
     }
 
     var timeFilter by remember { mutableStateOf(TimeFilter.ALL) }
@@ -76,13 +76,13 @@ fun AdminHistoryScreen(
     fun siteOkReading(meterId: String): Boolean {
         if (selectedSite == "Vsi") return true
         val site = meterById[meterId]?.site
-        return site == selectedSite
+        return site?.name == selectedSite
     }
 
     fun searchOkReading(meterId: String): Boolean {
         val q = search.text.trim()
         if (q.isEmpty()) return true
-        val name = meterById[meterId]?.name ?: meterId
+        val name = meterById[meterId]?.name?.label ?: meterId
         return name.contains(q, ignoreCase = true)
     }
 
@@ -321,10 +321,10 @@ fun AdminHistoryScreen(
 
                         items(dayReadings, key = { it.id }) { r ->
                             val m = meterById[r.meterId]
-                            val meterName = m?.name ?: r.meterId
-                            val unit = m?.unit?.takeIf { it.isNotBlank() } ?: ""
+                            val meterName = m?.name?.label ?: r.meterId
+                            val unit = m?.unit?.label.orEmpty()
                             val valueLabel = formatValue(m, r.value)
-                            val site = m?.site
+                            val site = m?.site?.name
 
                             Card(
                                 modifier = Modifier
@@ -344,7 +344,7 @@ fun AdminHistoryScreen(
                                         Text(formatTime(r.timestampMs))
 
                                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                            if (!site.isNullOrBlank()) {
+                                            if (site != null) {
                                                 Text(site, style = MaterialTheme.typography.labelMedium)
                                             }
                                             Text(r.enteredBy)
@@ -408,7 +408,7 @@ fun AdminHistoryScreen(
                                         Text(formatTime(e.timestampMs))
 
                                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                            if (!site.isNullOrBlank()) {
+                                            if (site != null) {
                                                 Text(site, style = MaterialTheme.typography.labelMedium)
                                             }
                                             Text(e.userName)
@@ -457,8 +457,8 @@ fun AdminHistoryScreen(
     // ---- Details dialog (read-only) ----
     selected?.let { r ->
         val m = meterById[r.meterId]
-        val meterName = m?.name ?: r.meterId
-        val unit = m?.unit?.takeIf { it.isNotBlank() } ?: ""
+        val meterName = m?.name?.label ?: r.meterId
+        val unit = m?.unit?.label.orEmpty()
         val valueLabel = formatValue(m, r.value)
 
         AlertDialog(
@@ -468,7 +468,7 @@ fun AdminHistoryScreen(
                 Text(
                     "Čas: ${formatTime(r.timestampMs)}\n" +
                             "Uporabnik: ${r.enteredBy}\n" +
-                            "Site: ${m?.site ?: "?"}\n" +
+                            "Site: ${m?.site?.name ?: "?"}\n" +
                             "Števec: $meterName\n" +
                             "Vrednost: $valueLabel${if (unit.isNotBlank()) " $unit" else ""}\n" +
                             "ID: ${r.id}"
@@ -606,8 +606,8 @@ private fun prettyEventMessage(e: ActivityLog, meterById: Map<String, Meter>): S
     val value = parts[1]
 
     val m = meterById[meterId]
-    val name = m?.name ?: meterId
-    val unit = m?.unit?.takeIf { it.isNotBlank() } ?: ""
+    val name = m?.name?.label ?: meterId
+    val unit = m?.unit?.label.orEmpty()
 
     return if (unit.isNotBlank()) "$name = $value $unit" else "$name = $value"
 }

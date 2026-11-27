@@ -247,10 +247,10 @@ fun MeterInputSection(
     ) {
         OutlinedTextField(
             value = buildString {
-                append(selectedMeter.name)
+                append(selectedMeter.name.label)
 
-                if (selectedMeter.unit.isNotBlank()) {
-                    append(" (${selectedMeter.unit})")
+                if (selectedMeter.unit.label.isNotBlank()) {
+                    append(" (${selectedMeter.unit.label})")
                 }
             },
             onValueChange = {},
@@ -281,10 +281,10 @@ fun MeterInputSection(
                 DropdownMenuItem(
                     text = {
                         Text(
-                            if (meter.unit.isNotBlank()) {
-                                "${meter.name} (${meter.unit})"
+                            if (meter.unit.label.isNotBlank()) {
+                                "${meter.name.label} (${meter.unit.label})"
                             } else {
-                                meter.name
+                                meter.name.label
                             }
                         )
                     },
@@ -397,9 +397,9 @@ fun ColumnScope.RecentReadingsSection(
         ) { reading ->
             val meter = meterById[reading.meterId]
             val meterLabel =
-                meter?.name ?: reading.meterId
+                meter?.name?.label ?: reading.meterId
             val unitLabel =
-                meter?.unit.orEmpty()
+                meter?.unit?.label.orEmpty()
             val valueLabel =
                 meter?.let {
                     formatValue(it, reading.value)

@@ -1,6 +1,6 @@
 package com.enos.enospte.data.network
 
-import com.enos.enospte.data.model.Reading
+import com.enos.enospte.data.model.DatabaseReading
 import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.Retrofit
@@ -14,19 +14,19 @@ interface ReadingApiService {
 
     @POST("api/measures")
     suspend fun postReadings(
-        @Body readings: List<Reading>
+        @Body readings: List<DatabaseReading>
     ): Response<ResponseBody>
 
     @GET("api/measures/{userId}")
     suspend fun getReadings(
         @Path("userId") userId: String
-    ): Response<List<Reading>>
+    ): Response<List<DatabaseReading>>
 
     companion object {
         // Static Base URL & Port for the server
         // "http://10.0.2.2:8080/" maps to localhost:8080 on your host machine from Android Emulator
         // Change to your server's static IP/Port if needed (e.g., "http://192.168.1.100:8080/")
-        const val BASE_URL = "http://192.168.7.16:5077/"
+        const val BASE_URL = "http://192.168.7.73:5000/"
 
         val instance: ReadingApiService by lazy {
             Retrofit.Builder()
